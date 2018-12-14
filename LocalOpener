@@ -1,0 +1,42 @@
+Module LocalOpener
+    Sub Main(ByVal CmdArgs() As String)
+        '引数の個数を取得する
+        Dim CountArg As Integer = CmdArgs.Length
+        If CountArg <> 1 Then
+            MsgBox("１つのファイルのみ指定して下さい。")
+            Exit Sub
+        End If
+        '引数の値を取得する
+        Dim idx As Integer = 1
+        Dim PureFileName As String
+        Dim TempFolderFile As String
+        Dim argFileName As String
+        Dim SrvFileUpdate As DateTime
+        Dim TempFileUpdate As DateTime
+        For Each arg As String In CmdArgs
+            'MsgBox(arg)
+            PureFileName = System.IO.Path.GetFileName(arg)
+            TempFolderFile = System.IO.Path.GetTempPath() & PureFileName
+            argFileName = arg
+            ' 更新日時を取得する
+            SrvFileUpdate = System.IO.File.GetLastWriteTime(arg)
+            System.IO.File.Copy(arg, TempFolderFile, True)
+            'Console.WriteLine("{0}={1}", idx, arg)
+            idx += 1
+        Next
+
+        Dim p As System.Diagnostics.Process = System.Diagnostics.Process.Start(TempFolderFile)
+        p.WaitForExit()
+        TempFileUpdate = System.IO.File.GetLastWriteTime(TempFolderFile)
+        Dim result As Integer
+        If SrvFileUpdate <> TempFileUpdate Then
+            result = MsgBox("ファイルが更新されています。上書きしますか？", _
+                MsgBoxStyle.YesNo Or MsgBoxStyle.Exclamation, "ファイル更新確認")
+            'MsgBox("result=" & result & " vbYes=" & vbYes)
+            If result = vbYes Then
+                System.IO.File.Copy(TempFolderFile, argFileName, True)
+            End If
+        End If
+    End Sub
+
+End Module
